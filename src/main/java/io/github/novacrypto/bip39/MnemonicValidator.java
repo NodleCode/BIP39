@@ -104,6 +104,32 @@ public final class MnemonicValidator {
         }
     }
 
+    public byte[] entropyWithChecksum(final Collection<? extends CharSequence> mnemonic) throws
+            InvalidWordCountException,
+            WordNotFoundException,
+            UnexpectedWhiteSpaceException {
+        final int[] wordIndexes = findWordIndexes(mnemonic);
+        try {
+            return entropyWithChecksum(wordIndexes);
+        } finally {
+            Arrays.fill(wordIndexes, 0);
+        }
+    }
+
+
+    private static byte[] entropyWithChecksum(final int[] wordIndexes) throws
+            InvalidWordCountException {
+        final int ms = wordIndexes.length;
+        final int entPlusCs = ms * 11;
+        final int ent = (entPlusCs * 32) / 33;
+        final int cs = ent / 32;
+        if (entPlusCs != ent + cs)
+            throw new InvalidWordCountException();
+        final byte[] entropyWithChecksum = new byte[(entPlusCs + 7) / 8];
+        wordIndexesToEntropyWithCheckSum(wordIndexes, entropyWithChecksum);
+        return entropyWithChecksum;
+    }
+
     private static void validate(final int[] wordIndexes) throws
             InvalidWordCountException,
             InvalidChecksumException {
